@@ -1,0 +1,88 @@
+# .gitignore - Version Control Exclusions
+
+# ==================== ENVIRONMENT & SECRETS ====================
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+.env.prod
+.env.staging
+
+# ==================== DEPENDENCIES ====================
+node_modules/
+npm-debug.log
+npm-error.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ==================== IDE & EDITOR ====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# ==================== BUILD OUTPUT ====================
+dist/
+build/
+out/
+*.js.map
+
+# ==================== LOGS ====================
+logs/
+*.log
+error.log
+combined.log
+
+# ==================== TEMPORARY FILES ====================
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# ==================== DATABASE ====================
+*.db
+*.sqlite
+*.sqlite3
+.psql_history
+
+# ==================== VERCEL ====================
+.vercel/
+.vercel
+
+# ==================== OS ====================
+.DS_Store
+Thumbs.db
+*.class
+*.jar
+
+# ==================== PROJECT SPECIFIC ====================
+# Cache files
+*.cache
+cache/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Sensitive data
+secrets/
+private/
+credentials/
+
+# Backups
+backup/
+backups/
+*.tar.gz
+*.zip
+
+# Local development
+.eslintcache
+.prettierignore

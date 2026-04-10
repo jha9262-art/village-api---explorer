@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Villages - Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: "✦";
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        select, input, button {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .controls select {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .results {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-card-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .result-card-info {
+            font-size: 0.85em;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 4px solid #c33;
+        }
+        
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 4px solid #3c3;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🇮🇳 Indian Villages Explorer</h1>
+            <p>Explore States, Districts, Subdistricts & Villages of India</p>
+        </div>
+        
+        <div class="content">
+            <!-- API Status -->
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="stateCount">-</div>
+                    <div class="stat-label">States</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="districtCount">-</div>
+                    <div class="stat-label">Districts</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="subdistrictCount">-</div>
+                    <div class="stat-label">Subdistricts</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="villageCount">-</div>
+                    <div class="stat-label">Villages</div>
+                </div>
+            </div>
+            
+            <!-- States Section -->
+            <div class="section">
+                <div class="section-title">Browse States</div>
+                <div class="controls">
+                    <button onclick="loadStates()">Load All States</button>
+                    <input type="text" id="stateSearch" placeholder="Search states..." onkeyup="filterStates()">
+                </div>
+                <div class="results" id="statesResults"></div>
+            </div>
+            
+            <!-- Districts Section -->
+            <div class="section">
+                <div class="section-title">Browse Districts</div>
+                <div class="controls">
+                    <select id="stateSelect" onchange="loadDistricts()">
+                        <option value="">-- Select a State --</option>
+                    </select>
+                </div>
+                <div class="results" id="districtsResults"></div>
+            </div>
+            
+            <!-- Subdistricts Section -->
+            <div class="section">
+                <div class="section-title">Browse Subdistricts</div>
+                <div class="controls">
+                    <select id="districtSelect" onchange="loadSubdistricts()">
+                        <option value="">-- Select a District --</option>
+                    </select>
+                </div>
+                <div class="results" id="subdistrictsResults"></div>
+            </div>
+            
+            <!-- Villages Section -->
+            <div class="section">
+                <div class="section-title">Browse Villages</div>
+                <div class="controls">
+                    <select id="subdistrictSelect" onchange="loadVillages()">
+                        <option value="">-- Select a Subdistrict --</option>
+                    </select>
+                </div>
+                <div class="results" id="villagesResults"></div>
+            </div>
+            
+            <div class="status" id="status">Ready. Click "Load All States" to begin!</div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let states = [];
+        let districts = [];
+        let subdistricts = [];
+        let villages = [];
+        
+        async function apiCall(endpoint, limit = 100) {
+            try {
+                const response = await fetch(`${API_URL}${endpoint}?limit=${limit}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                showError(`API Error: ${error.message}`);
+                return null;
+            }
+        }
+        
+        function showLoading(elementId) {
+            document.getElementById(elementId).innerHTML = '<div class="loading">⟳ Loading...</div>';
+        }
+        
+        function showError(message) {
+            updateStatus(`❌ ${message}`);
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        async function loadStates() {
+            showLoading('statesResults');
+            updateStatus('Loading states...');
+            
+            const data = await apiCall('/states', 500);
+            if (!data || !data.success) return;
+            
+            states = data.data;
+            districts = [];
+            subdistricts = [];
+            villages = [];
+            renderStates(states);
+            populateStateSelect();
+            updateSummary();
+
+            if (states.length > 0) {
+                const select = document.getElementById('stateSelect');
+                select.value = states[0].id;
+                await loadDistricts(true);
+            }
+            updateStatus(`✓ Loaded ${states.length} states`);
+        }
+        
+        function renderStates(stateList) {
+            const html = stateList.length ? 
+                `<div class="results-grid">${stateList.map(s => 
+                    `<div class="result-card">
+                        <div class="result-card-title">${s.state_name}</div>
+                        <div class="result-card-info">
+                            Code: ${s.state_code}<br>
+                            ID: ${s.id}
+                        </div>
+                    </div>`
+                ).join('')}</div>` 
+                : '<div class="error">No states found</div>';
+            document.getElementById('statesResults').innerHTML = html;
+        }
+        
+        function filterStates() {
+            const query = document.getElementById('stateSearch').value.toLowerCase();
+            const filtered = states.filter(s => s.state_name.toLowerCase().includes(query));
+            renderStates(filtered);
+        }
+        
+        function populateStateSelect() {
+            const select = document.getElementById('stateSelect');
+            select.innerHTML = '<option value="">-- Select a State --</option>' + 
+                states.map(s => `<option value="${s.id}">${s.state_name}</option>`).join('');
+        }
+        
+        async function loadDistricts(autoSelect = false) {
+            const stateId = document.getElementById('stateSelect').value;
+            if (!stateId) return;
+            
+            showLoading('districtsResults');
+            updateStatus('Loading districts...');
+            
+            const data = await apiCall(`/states/${stateId}/districts`);
+            if (!data || !data.success) return;
+            
+            districts = data.data;
+            subdistricts = [];
+            villages = [];
+            renderResults('districtsResults', districts, 'district_name', 'district_code');
+            populateDistrictSelect();
+            populateSubdistrictSelect();
+            updateSummary();
+
+            if (autoSelect && districts.length > 0) {
+                const select = document.getElementById('districtSelect');
+                select.value = districts[0].id;
+                await loadSubdistricts(true);
+            }
+            updateStatus(`✓ Loaded ${districts.length} districts`);
+        }
+        
+        async function loadSubdistricts(autoSelect = false) {
+            const districtId = document.getElementById('districtSelect').value;
+            if (!districtId) return;
+            
+            showLoading('subdistrictsResults');
+            updateStatus('Loading subdistricts...');
+            
+            const data = await apiCall(`/districts/${districtId}/subdistricts`);
+            if (!data || !data.success) return;
+            
+            subdistricts = data.data;
+            villages = [];
+            renderResults('subdistrictsResults', subdistricts, 'subdistrict_name', 'subdistrict_code');
+            populateSubdistrictSelect();
+            updateSummary();
+
+            if (autoSelect && subdistricts.length > 0) {
+                const select = document.getElementById('subdistrictSelect');
+                select.value = subdistricts[0].id;
+                await loadVillages();
+            }
+            updateStatus(`✓ Loaded ${subdistricts.length} subdistricts`);
+        }
+        
+        async function loadVillages() {
+            const subdistrictId = document.getElementById('subdistrictSelect').value;
+            if (!subdistrictId) return;
+            
+            showLoading('villagesResults');
+            updateStatus('Loading villages...');
+            
+            const data = await apiCall(`/subdistricts/${subdistrictId}/villages`);
+            if (!data || !data.success) return;
+            
+            villages = data.data;
+            renderResults('villagesResults', villages, 'village_name', 'village_code');
+            updateSummary();
+            updateStatus(`✓ Loaded ${villages.length} villages`);
+        }
+        
+        function renderResults(elementId, data, nameField, codeField) {
+            const html = data.length ? 
+                `<div class="results-grid">${data.map(item => 
+                    `<div class="result-card">
+                        <div class="result-card-title">${item[nameField]}</div>
+                        <div class="result-card-info">
+                            Code: ${item[codeField]}<br>
+                            ID: ${item.id}
+                        </div>
+                    </div>`
+                ).join('')}</div>` 
+                : '<div class="error">No data found</div>';
+            document.getElementById(elementId).innerHTML = html;
+        }
+        
+        function populateDistrictSelect() {
+            const select = document.getElementById('districtSelect');
+            select.innerHTML = '<option value="">-- Select a District --</option>' + 
+                districts.map(d => `<option value="${d.id}">${d.district_name}</option>`).join('');
+        }
+        
+        function populateSubdistrictSelect() {
+            const select = document.getElementById('subdistrictSelect');
+            select.innerHTML = '<option value="">-- Select a Subdistrict --</option>' + 
+                subdistricts.map(s => `<option value="${s.id}">${s.subdistrict_name}</option>`).join('');
+        }
+        
+        function updateSummary() {
+            document.getElementById('stateCount').textContent = states.length;
+            document.getElementById('districtCount').textContent = districts.length;
+            document.getElementById('subdistrictCount').textContent = subdistricts.length;
+            document.getElementById('villageCount').textContent = villages.length;
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            updateStatus('Loading states automatically...');
+            loadStates();
+        });
+    </script>
+</body>
+</html>
