@@ -3,14 +3,16 @@ require("dotenv").config();
 
 let pool;
 
-// Use DATABASE_URL if provided (for NeonDB/Cloud), otherwise use individual vars
+// Pool not created for mock data deployment
+// Uncomment when using database
+/*
 if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-    connectionTimeoutMillis: 2000, // How long to wait when connecting a new client
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
   });
 } else {
   pool = new Pool({
@@ -24,6 +26,7 @@ if (process.env.DATABASE_URL) {
     connectionTimeoutMillis: 2000,
   });
 }
+*/
 
 // Test database connection
 pool.on('connect', () => {
