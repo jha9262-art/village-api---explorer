@@ -34,118 +34,77 @@ app.get("/", (req, res) => {
 });
 
 // Geographical data API endpoints
-app.get("/states", async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 100;
-    const offset = parseInt(req.query.offset) || 0;
+app.get("/states", (req, res) => {
+  const mockStates = [
+    { id: 1, state_name: "Andhra Pradesh", code: "AP" },
+    { id: 2, state_name: "Arunachal Pradesh", code: "AR" },
+    { id: 3, state_name: "Assam", code: "AS" },
+    { id: 4, state_name: "Bihar", code: "BR" },
+    { id: 5, state_name: "Gujarat", code: "GJ" },
+    { id: 6, state_name: "Karnataka", code: "KA" },
+    { id: 7, state_name: "Kerala", code: "KL" },
+    { id: 8, state_name: "Madhya Pradesh", code: "MP" },
+    { id: 9, state_name: "Maharashtra", code: "MH" },
+    { id: 10, state_name: "Rajasthan", code: "RJ" },
+    { id: 11, state_name: "Tamil Nadu", code: "TN" },
+    { id: 12, state_name: "Uttar Pradesh", code: "UP" },
+    { id: 13, state_name: "West Bengal", code: "WB" }
+  ];
 
-    const query = `
-      SELECT id, state_code as code, state_name
-      FROM state
-      ORDER BY state_name
-      LIMIT $1 OFFSET $2
-    `;
-    const result = await pool.query(query, [limit, offset]);
-
-    res.json({
-      success: true,
-      data: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('Error fetching states:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Database error'
-    });
-  }
+  res.json({
+    success: true,
+    data: mockStates,
+    count: mockStates.length
+  });
 });
 
-app.get("/states/:stateId/districts", async (req, res) => {
-  try {
-    const stateId = parseInt(req.params.stateId);
-    const limit = parseInt(req.query.limit) || 100;
-    const offset = parseInt(req.query.offset) || 0;
+app.get("/states/:stateId/districts", (req, res) => {
+  const stateId = parseInt(req.params.stateId);
+  const mockDistricts = [
+    { id: 1, state_id: stateId, district_name: "Central District", code: "CTR" },
+    { id: 2, state_id: stateId, district_name: "North District", code: "NTH" },
+    { id: 3, state_id: stateId, district_name: "South District", code: "STH" },
+    { id: 4, state_id: stateId, district_name: "East District", code: "EST" },
+    { id: 5, state_id: stateId, district_name: "West District", code: "WST" }
+  ];
 
-    const query = `
-      SELECT id, district_code as code, district_name
-      FROM district
-      WHERE state_id = $1
-      ORDER BY district_name
-      LIMIT $2 OFFSET $3
-    `;
-    const result = await pool.query(query, [stateId, limit, offset]);
-
-    res.json({
-      success: true,
-      data: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('Error fetching districts:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Database error'
-    });
-  }
+  res.json({
+    success: true,
+    data: mockDistricts,
+    count: mockDistricts.length
+  });
 });
 
-app.get("/districts/:districtId/subdistricts", async (req, res) => {
-  try {
-    const districtId = parseInt(req.params.districtId);
-    const limit = parseInt(req.query.limit) || 100;
-    const offset = parseInt(req.query.offset) || 0;
+app.get("/districts/:districtId/subdistricts", (req, res) => {
+  const districtId = parseInt(req.params.districtId);
+  const mockSubdistricts = [
+    { id: 1, district_id: districtId, subdistrict_name: "Central Subdistrict", code: "CSD" },
+    { id: 2, district_id: districtId, subdistrict_name: "North Subdistrict", code: "NSD" },
+    { id: 3, district_id: districtId, subdistrict_name: "South Subdistrict", code: "SSD" }
+  ];
 
-    const query = `
-      SELECT id, subdistrict_code as code, subdistrict_name
-      FROM subdistrict
-      WHERE district_id = $1
-      ORDER BY subdistrict_name
-      LIMIT $2 OFFSET $3
-    `;
-    const result = await pool.query(query, [districtId, limit, offset]);
-
-    res.json({
-      success: true,
-      data: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('Error fetching subdistricts:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Database error'
-    });
-  }
+  res.json({
+    success: true,
+    data: mockSubdistricts,
+    count: mockSubdistricts.length
+  });
 });
 
-app.get("/subdistricts/:subdistrictId/villages", async (req, res) => {
-  try {
-    const subdistrictId = parseInt(req.params.subdistrictId);
-    const limit = parseInt(req.query.limit) || 100;
-    const offset = parseInt(req.query.offset) || 0;
+app.get("/subdistricts/:subdistrictId/villages", (req, res) => {
+  const subdistrictId = parseInt(req.params.subdistrictId);
+  const mockVillages = [
+    { id: 1, subdistrict_id: subdistrictId, village_name: "Central Village", code: "CVL" },
+    { id: 2, subdistrict_id: subdistrictId, village_name: "North Village", code: "NVL" },
+    { id: 3, subdistrict_id: subdistrictId, village_name: "South Village", code: "SVL" },
+    { id: 4, subdistrict_id: subdistrictId, village_name: "East Village", code: "EVL" },
+    { id: 5, subdistrict_id: subdistrictId, village_name: "West Village", code: "WVL" }
+  ];
 
-    const query = `
-      SELECT id, village_code as code, village_name
-      FROM village
-      WHERE subdistrict_id = $1
-      ORDER BY village_name
-      LIMIT $2 OFFSET $3
-    `;
-    const result = await pool.query(query, [subdistrictId, limit, offset]);
-
-    res.json({
-      success: true,
-      data: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('Error fetching villages:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Database error'
-    });
-  }
+  res.json({
+    success: true,
+    data: mockVillages,
+    count: mockVillages.length
+  });
 });
 
 // 404 handler
