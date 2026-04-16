@@ -1,28 +1,6 @@
 {
   "version": 2,
-    "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "index.js"
-    },
-    {
-      "src": "/health",
-      "dest": "index.js"
-    },
-    {
-      "src": "/admin",
-      "dest": "index.js"
-    },
-    {
-      "src": "/client",
-      "dest": "index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "index.js"
-    }
-  ],
-    "regions": ["iad1"],
+  "regions": ["iad1"],
   "env": {
     "NODE_ENV": "production"
   },
