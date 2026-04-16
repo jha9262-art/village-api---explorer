@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Village API SaaS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            font-size: 2em;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border: 1px solid #bee5eb;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 Admin</h1>
+            <p>Village API SaaS Platform</p>
+        </div>
+
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="admin@example.com" autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Login</button>
+
+            <div class="loading" id="loading">
+                <span class="spinner"></span> Logging in...
+            </div>
+        </form>
+
+        <div class="info">
+            <strong>👤 Admin Demo Account:</strong><br>
+            Email: <code>admin@example.com</code><br>
+            Password: <code>AdminPass123!</code><br>
+            (Create this account first or modify in database)
+        </div>
+
+        <div class="register-link">
+            Need an account? <a href="frontend.html">Register as Client</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        window.addEventListener('load', () => {
+            // If already logged in, redirect to dashboard
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                window.location.href = 'admin-dashboard.html';
+            }
+        });
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+
+            // Hide messages
+            error.style.display = 'none';
+            success.style.display = 'none';
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Check if admin
+                    if (data.user.role !== 'admin') {
+                        error.textContent = '❌ This account is not an admin account';
+                        error.style.display = 'block';
+                    } else if (data.user.subscriptionTier !== 'unlimited') {
+                        error.textContent = '❌ Admin account must have unlimited tier';
+                        error.style.display = 'block';
+                    } else {
+                        success.textContent = '✓ Login successful! Redirecting...';
+                        success.style.display = 'block';
+
+                        // Save token
+                        localStorage.setItem('adminToken', data.token);
+                        localStorage.setItem('adminUser', JSON.stringify(data.user));
+
+                        // Redirect after 1 second
+                        setTimeout(() => {
+                            window.location.href = 'admin-dashboard.html';
+                        }, 1000);
+                    }
+                } else {
+                    error.textContent = `❌ ${data.error || 'Login failed'}`;
+                    error.style.display = 'block';
+                }
+            } catch (err) {
+                error.textContent = `❌ Connection error: ${err.message}`;
+                error.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

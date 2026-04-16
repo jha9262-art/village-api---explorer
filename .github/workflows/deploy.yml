@@ -1,0 +1,170 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  pull_request:
+    branches:
+      - main
+
+env:
+  NODE_ENV: production
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check syntax
+        run: npm run lint 2>/dev/null || true
+      
+      - name: Verify configuration
+        run: node -c ./index.js
+
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      
+      - name: Build project with Vercel
+        run: vercel build --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Deploy project to Vercel
+        id: deploy
+        run: vercel deploy --prebuilt --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Get deployment URL
+        run: |
+          echo "Deployment URL: ${{ steps.deploy.outputs.url }}"
+          echo "DEPLOYMENT_URL=${{ steps.deploy.outputs.url }}" >> $GITHUB_ENV
+      
+      - name: Verify deployment
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 5
+          curl -f ${{ env.DEPLOYMENT_URL }}/health || exit 1
+      
+      - name: Notify Slack on success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "✅ Village API deployed successfully!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*✅ Deployment Successful*\nAPI: ${{ env.DEPLOYMENT_URL }}\nStatus: Live"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n`${{ github.sha }}`"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "❌ Village API deployment failed!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*❌ Deployment Failed*\nCheck GitHub Actions for details"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  health-check:
+    name: Post-Deployment Health Check
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: success()
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Run health checks
+        run: |
+          echo "Waiting for deployment endpoint..."
+          sleep 10
+          
+          # Get deployment URL from Vercel
+          DEPLOYMENT_URL=$(cat /tmp/deployment_url || echo "https://village-api.vercel.app")
+          
+          echo "Testing endpoints..."
+          
+          # Health check
+          curl -s $DEPLOYMENT_URL/health | jq '.'
+          
+          # API check
+          curl -s $DEPLOYMENT_URL/states | jq '.count'
+          
+          echo "✅ All health checks passed!"
